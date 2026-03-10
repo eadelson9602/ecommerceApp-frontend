@@ -14,15 +14,15 @@ La estructura del proyecto sigue una **arquitectura hexagonal** con presentació
 
 ## Stack técnico
 
-| Área        | Tecnología                          |
-|------------|-------------------------------------|
-| Framework  | Vue 3 + TypeScript                  |
-| Build      | Vite 7                              |
-| Router     | Vue Router 5                        |
-| Estado     | Pinia + Pinia Colada (queries)      |
-| Persistencia | pinia-plugin-persistedstate (auth) |
-| UI         | Tailwind CSS 4 + PrimeVue (unstyled)|
-| API        | JSON:API, JWT (Bearer)              |
+| Área         | Tecnología                           |
+| ------------ | ------------------------------------ |
+| Framework    | Vue 3 + TypeScript                   |
+| Build        | Vite 7                               |
+| Router       | Vue Router 5                         |
+| Estado       | Pinia + Pinia Colada (queries)       |
+| Persistencia | pinia-plugin-persistedstate (auth)   |
+| UI           | Tailwind CSS 4 + PrimeVue (unstyled) |
+| API          | JSON:API, JWT (Bearer)               |
 
 ---
 
@@ -42,10 +42,10 @@ Copia el ejemplo y ajusta las URLs del backend según el entorno:
 cp env.example .env
 ```
 
-| Variable | Descripción | Por defecto (dev) |
-|----------|-------------|-------------------|
-| `VITE_PRODUCTS_API_URL` | URL del Products Service (login, productos) | `http://localhost:8080` |
-| `VITE_INVENTORY_API_URL` | URL del Inventory Service | `http://localhost:8081` |
+| Variable                 | Descripción                                 | Por defecto (dev)       |
+| ------------------------ | ------------------------------------------- | ----------------------- |
+| `VITE_PRODUCTS_API_URL`  | URL del Products Service (login, productos) | `http://localhost:8080` |
+| `VITE_INVENTORY_API_URL` | URL del Inventory Service                   | `http://localhost:8081` |
 
 En producción, apunta estas variables a las URLs públicas de tus APIs (por ejemplo `https://api.ejemplo.com/products`, `https://api.ejemplo.com/inventory`).
 
@@ -186,11 +186,11 @@ docker run -p 80:80 ecommerceapp-frontend
 
 ## Scripts disponibles
 
-| Script | Descripción |
-|--------|-------------|
-| `npm run dev` | Servidor de desarrollo (Vite), por defecto en http://localhost:5173 |
-| `npm run build` | Compila TypeScript y genera build de producción en `dist/` |
-| `npm run preview` | Sirve `dist/` localmente para probar el build |
+| Script            | Descripción                                                         |
+| ----------------- | ------------------------------------------------------------------- |
+| `npm run dev`     | Servidor de desarrollo (Vite), por defecto en http://localhost:5173 |
+| `npm run build`   | Compila TypeScript y genera build de producción en `dist/`          |
+| `npm run preview` | Sirve `dist/` localmente para probar el build                       |
 
 ---
 
@@ -207,5 +207,3 @@ src/
 ├── main.ts
 └── style.css
 ```
-
-Detalle de capas y módulos: **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
