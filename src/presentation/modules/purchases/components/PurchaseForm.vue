@@ -111,7 +111,7 @@ onUnmounted(() => {
       />
       {{ status === 'loading' ? 'Procesando…' : submitLabel }}
     </button>
-    <p v-if="status === 'success'" class="mt-2 text-xs text-green-700">{{ message }}</p>
+    <p v-if="status === 'success'" class="mt-2 text-xs text-green-700" data-testid="purchase-success-message">{{ message }}</p>
     <p v-else-if="status === 'error' && message" class="mt-2 text-xs text-red-600">{{ message }}</p>
   </form>
 

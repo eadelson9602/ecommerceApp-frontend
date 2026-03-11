@@ -208,6 +208,22 @@ docker run -p 80:80 ecommerceapp-frontend
 
 ---
 
+## Pruebas E2E
+
+Las pruebas E2E se ejecutan con Playwright:
+
+```bash
+yarn test:e2e
+```
+
+Incluyen flujo de compra, caso de error por **stock insuficiente** y caso de **inventario/producto caído** (botón Reintentar). Los dos casos de error no se saltan y pasan siempre.
+
+**Evidencia de ejecución:**
+
+![Resultado de yarn test:e2e](public/Screenshot%20from%202026-03-10%2020-27-46.png)
+
+---
+
 ## Estructura rápida
 
 ```
