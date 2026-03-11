@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import { useQuery } from '@pinia/colada'
+import { useQuery, useQueryCache } from '@pinia/colada'
 import { useProductsStore } from '../store/products.store'
-import { productsListQuery } from '@/application/products/product-queries'
+import { productsListQuery, PRODUCT_QUERY_KEYS } from '@/application/products/product-queries'
+import Loader from '@/presentation/shared/components/Loader.vue'
 
 interface ProductAttributes {
   name?: string
@@ -40,6 +41,7 @@ const endRecord = computed(() =>
 )
 
 const productsStore = useProductsStore()
+const queryCache = useQueryCache()
 watch(
   () => state.value.data?.meta?.totalRecords,
   (total) => {
@@ -47,16 +49,23 @@ watch(
   },
   { immediate: true }
 )
+
+function retry() {
+  queryCache.invalidateQueries(
+    {
+      key: PRODUCT_QUERY_KEYS.list(props.page, props.size, props.status, props.search, props.sort),
+      exact: true,
+    },
+    true
+  )
+}
 </script>
 
 <template>
   <div class="overflow-x-auto">
     <!-- Loading -->
-    <div
-      v-if="asyncStatus === 'loading'"
-      class="flex items-center justify-center py-12 text-gray-500"
-    >
-      <span class="animate-pulse">Cargando productos…</span>
+    <div v-if="asyncStatus === 'loading'" class="flex justify-center py-12">
+      <Loader label="Cargando productos…" size="md" />
     </div>
 
     <!-- Error -->
@@ -67,6 +76,13 @@ watch(
     >
       <p class="font-medium">Error al cargar productos</p>
       <p class="mt-1 text-sm">{{ state.error?.message }}</p>
+      <button
+        type="button"
+        class="mt-2 rounded border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+        @click="retry"
+      >
+        Reintentar
+      </button>
     </div>
 
     <!-- Empty -->

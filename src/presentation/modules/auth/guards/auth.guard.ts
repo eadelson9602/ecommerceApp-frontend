@@ -1,4 +1,4 @@
-import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
+import type { RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '../store/auth.store'
 import { isJwtExpired } from '@/infrastructure/auth/jwt'
 
@@ -8,11 +8,9 @@ import { isJwtExpired } from '@/infrastructure/auth/jwt'
  */
 export function authGuard(
   to: RouteLocationNormalized,
-  _from: RouteLocationNormalized,
-  next: NavigationGuardNext
-): void {
+  _from: RouteLocationNormalized
+): void | { name: string; query: { redirect?: string; expired?: string } } {
   if (to.meta.public) {
-    next()
     return
   }
 
@@ -20,15 +18,15 @@ export function authGuard(
   const token = authStore.token
 
   if (!token) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
-    return
+    return { name: 'Login', query: { redirect: to.fullPath } }
   }
 
   if (isJwtExpired(token)) {
     authStore.clearAuth()
-    next({ name: 'Login', query: { redirect: to.fullPath, expired: '1' } })
-    return
+    return { name: 'Login', query: { redirect: to.fullPath, expired: '1' } }
   }
 
-  next()
+  if (to.meta.requiresPurchasesHistory && !authStore.canViewPurchasesHistory) {
+    return { name: 'Home' }
+  }
 }

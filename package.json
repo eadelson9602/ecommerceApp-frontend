@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@pinia/colada": "^1.0.0",
@@ -23,9 +27,13 @@
     "@tailwindcss/vite": "^4.2.1",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.2",
+    "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
+    "@playwright/test": "^1.49.0",
+    "happy-dom": "^20.0.0",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
+    "vitest": "^2.1.0",
     "vue-tsc": "^3.1.5"
   }
 }

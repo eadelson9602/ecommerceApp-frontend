@@ -78,6 +78,20 @@ yarn dev
 
 La app se sirve en **http://localhost:5173**. Asegúrate de tener el backend levantado (Products en 8080, Inventory en 8081) para login y datos.
 
+---
+
+## Usuarios de prueba (frontend)
+
+El login del frontend usa el endpoint `POST /auth/login` del **Products Service**. Los seeders del backend crean estos usuarios por defecto; todos comparten la misma contraseña:
+
+| Usuario   | Contraseña | Uso típico |
+| --------- | ---------- | ---------- |
+| **admin** | `password` | Acceso completo |
+| **operator** | `password` | Operaciones |
+| **viewer** | `password` | Solo lectura |
+
+Para probar la app: abre http://localhost:5173, ve a **Entrar** (o serás redirigido si no hay sesión) e inicia sesión con cualquiera de los usuarios de la tabla. El token JWT se guarda en Pinia y se persiste en `localStorage` bajo la clave `auth`.
+
 ### 4. Build de producción
 
 ```bash

@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/auth.store'
 const username = ref('')
 const password = ref('')
 const error = ref('')
+const isLoading = ref(false)
 const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
@@ -13,8 +14,30 @@ const route = useRoute()
 const redirectAfterLogin = computed(() => (route.query.redirect as string) || '/products')
 const isSessionExpired = computed(() => route.query.expired === '1')
 
+const usernameError = ref('')
+const passwordError = ref('')
+
+function validateForm(): boolean {
+  usernameError.value = ''
+  passwordError.value = ''
+  let valid = true
+  if (!username.value?.trim()) {
+    usernameError.value = 'El usuario es obligatorio.'
+    valid = false
+  }
+  if (!password.value) {
+    passwordError.value = 'La contraseña es obligatoria.'
+    valid = false
+  }
+  return valid
+}
+
 async function onSubmit() {
   error.value = ''
+  usernameError.value = ''
+  passwordError.value = ''
+  if (!validateForm()) return
+  isLoading.value = true
   try {
     const res = await fetch(
       `${import.meta.env.VITE_PRODUCTS_API_URL ?? 'http://localhost:8080'}/auth/login`,
@@ -36,6 +59,8 @@ async function onSubmit() {
     await router.push(redirectAfterLogin.value)
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Error al iniciar sesión'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -53,9 +78,11 @@ async function onSubmit() {
           id="username"
           v-model="username"
           type="text"
-          class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-gray-900"
-          required
+          class="mt-1 w-full rounded border px-3 py-2 text-gray-900"
+          :class="usernameError ? 'border-red-500' : 'border-gray-300'"
+          autocomplete="username"
         />
+        <p v-if="usernameError" class="mt-0.5 text-xs text-red-600">{{ usernameError }}</p>
       </div>
       <div>
         <label for="password" class="block text-sm text-gray-600">Contraseña</label>
@@ -63,16 +90,20 @@ async function onSubmit() {
           id="password"
           v-model="password"
           type="password"
-          class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-gray-900"
-          required
+          class="mt-1 w-full rounded border px-3 py-2 text-gray-900"
+          :class="passwordError ? 'border-red-500' : 'border-gray-300'"
+          autocomplete="current-password"
         />
+        <p v-if="passwordError" class="mt-0.5 text-xs text-red-600">{{ passwordError }}</p>
       </div>
       <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
       <button
         type="submit"
-        class="w-full rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+        class="flex w-full items-center justify-center gap-2 rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-70"
+        :disabled="isLoading"
       >
-        Entrar
+        <span v-if="isLoading" class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+        {{ isLoading ? 'Entrando…' : 'Entrar' }}
       </button>
     </form>
   </div>

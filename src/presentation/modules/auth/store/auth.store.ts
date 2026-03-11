@@ -13,6 +13,11 @@ export const useAuthStore = defineStore('auth', {
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
+    /** Visible para admin y operator (por username; si el backend devuelve roles, se puede usar eso). */
+    canViewPurchasesHistory: (state) => {
+      const u = (state.username ?? '').toLowerCase()
+      return u === 'admin' || u === 'operator'
+    },
   },
   actions: {
     setAuth(payload: AuthUser) {

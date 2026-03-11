@@ -1,6 +1,13 @@
+import {
+  getApiErrorMessage,
+  getTimeoutErrorMessage,
+  DEFAULT_REQUEST_TIMEOUT_MS,
+} from './api-errors'
+
 /**
  * Cliente HTTP para el backend ecommerceApp (Products 8080, Inventory 8081).
  * JSON:API y JWT opcional (lee de localStorage clave 'auth').
+ * Timeout y mensajes claros para 404, 409, 422 y timeout.
  */
 export const JSON_API_MEDIA_TYPE = 'application/vnd.api+json'
 
@@ -37,13 +44,21 @@ export function getInventoryApiUrl(path: string): string {
 export interface RequestOptions extends RequestInit {
   jsonApi?: boolean
   base?: 'products' | 'inventory'
+  /** Timeout en ms; por defecto DEFAULT_REQUEST_TIMEOUT_MS. */
+  timeoutMs?: number
 }
 
 export async function apiFetch(
   path: string,
   options: RequestOptions = {}
 ): Promise<Response> {
-  const { jsonApi = true, base = 'products', ...init } = options
+  const {
+    jsonApi = true,
+    base = 'products',
+    timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+    signal: outerSignal,
+    ...init
+  } = options
   const url =
     base === 'inventory' ? getInventoryApiUrl(path) : getProductsApiUrl(path)
   const token = getAuthToken()
@@ -59,42 +74,88 @@ export async function apiFetch(
     headers.set('Authorization', `Bearer ${token}`)
   }
 
-  const res = await fetch(url, { ...init, headers })
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+  const signal = outerSignal ?? controller.signal
 
-  if (res.status === 401) {
-    const { useAuthStore } = await import(
-      '@/presentation/modules/auth/store/auth.store'
-    )
-    const router = (await import('@/router')).default
-    useAuthStore().clearAuth()
-    router.push({ name: 'Login', query: { redirect: window.location.pathname } })
+  try {
+    const res = await fetch(url, { ...init, headers, signal })
+    clearTimeout(timeoutId)
+    if (res.status === 401) {
+      const { useAuthStore } = await import(
+        '@/presentation/modules/auth/store/auth.store'
+      )
+      const router = (await import('@/router')).default
+      useAuthStore().clearAuth()
+      router.push({ name: 'Login', query: { redirect: window.location.pathname } })
+    }
+    return res
+  } catch (err) {
+    clearTimeout(timeoutId)
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(getTimeoutErrorMessage(timeoutMs))
+    }
+    throw err
   }
-
-  return res
 }
 
 export async function apiGet<T>(
   path: string,
-  base: 'products' | 'inventory' = 'products'
+  base: 'products' | 'inventory' = 'products',
+  options?: { timeoutMs?: number }
 ): Promise<T> {
-  const res = await apiFetch(path, { method: 'GET', base })
+  const res = await apiFetch(path, { method: 'GET', base, ...options })
+  const text = await res.text()
   if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`API ${res.status}: ${text || res.statusText}`)
+    throw new Error(getApiErrorMessage(res.status, text, options))
   }
-  return res.json() as Promise<T>
+  return JSON.parse(text || 'null') as T
 }
 
 export async function apiMutate(
   path: string,
   method: 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   body?: unknown,
-  base: 'products' | 'inventory' = 'products'
+  base: 'products' | 'inventory' = 'products',
+  options?: { timeoutMs?: number; headers?: HeadersInit }
 ): Promise<Response> {
-  const res = await apiFetch(path, {
+  return apiFetch(path, {
     method,
     body: body !== undefined ? JSON.stringify(body) : undefined,
     base,
+    headers: options?.headers,
+    timeoutMs: options?.timeoutMs,
   })
-  return res
+}
+
+/**
+ * Para compras: permite enviar Idempotency-Key y obtener mensaje de error amigable si falla.
+ */
+export async function apiPurchase(
+  productId: string,
+  quantity: number,
+  idempotencyKey: string
+): Promise<{ ok: true } | { ok: false; message: string; status: number }> {
+  const headers = new Headers()
+  headers.set('Idempotency-Key', idempotencyKey)
+  const body = {
+    data: {
+      type: 'purchase',
+      attributes: { productId, quantity },
+    },
+  }
+  const res = await apiMutate(
+    '/api/purchases',
+    'POST',
+    body,
+    'inventory',
+    { headers }
+  )
+  const text = await res.text()
+  if (res.ok) return { ok: true }
+  return {
+    ok: false,
+    status: res.status,
+    message: getApiErrorMessage(res.status, text),
+  }
 }

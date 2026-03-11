@@ -1,15 +1,42 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useProductsStore } from '../store/products.store'
 import ProductList from '../components/ProductList.vue'
 import PageContainer from '@/presentation/shared/components/PageContainer.vue'
 
+const route = useRoute()
+const router = useRouter()
 const productsStore = useProductsStore()
 const { filter } = storeToRefs(productsStore)
 
-const page = computed(() => filter.page ?? 1)
-const size = computed(() => filter.size ?? 20)
+// Sincronizar paginación con la URL para que las peticiones al backend usen page/size
+watch(
+  () => ({ path: route.path, query: route.query }),
+  () => {
+    const q = route.query
+    const pageFromUrl = q.page ? Math.max(1, parseInt(String(q.page), 10)) : undefined
+    const sizeFromUrl = q.size ? Math.min(100, Math.max(1, parseInt(String(q.size), 10))) : undefined
+    if (pageFromUrl != null || sizeFromUrl != null) {
+      productsStore.setFilter({
+        ...(pageFromUrl != null && !Number.isNaN(pageFromUrl) && { page: pageFromUrl }),
+        ...(sizeFromUrl != null && !Number.isNaN(sizeFromUrl) && { size: sizeFromUrl }),
+      })
+    }
+  },
+  { immediate: true }
+)
+
+function updateQuery(partial: { page?: number; size?: number }) {
+  const q = { ...route.query }
+  if (partial.page != null) q.page = String(partial.page)
+  if (partial.size != null) q.size = String(partial.size)
+  router.replace({ query: q })
+}
+
+const page = computed(() => filter.value?.page ?? 1)
+const size = computed(() => filter.value?.size ?? 20)
 const totalPages = computed(() => {
   const total = productsStore.listTotalRecords ?? 0
   return Math.max(1, Math.ceil(total / (size.value || 1)))
@@ -19,18 +46,25 @@ const canNext = computed(() => page.value < totalPages.value)
 
 function setSearch(value: string) {
   productsStore.setFilter({ search: value, page: 1 })
+  updateQuery({ page: 1, size: size.value })
 }
 function setStatus(value: string) {
   productsStore.setFilter({ status: value, page: 1 })
+  updateQuery({ page: 1, size: size.value })
 }
 function setSort(value: string) {
   productsStore.setFilter({ sort: value, page: 1 })
+  updateQuery({ page: 1, size: size.value })
 }
 function setSize(value: number) {
-  productsStore.setFilter({ size: value, page: 1 })
+  const sizeClamped = Math.min(100, Math.max(1, value))
+  productsStore.setFilter({ size: sizeClamped, page: 1 })
+  updateQuery({ page: 1, size: sizeClamped })
 }
 function goToPage(p: number) {
-  productsStore.setFilter({ page: Math.max(1, Math.min(p, totalPages.value)) })
+  const newPage = Math.max(1, Math.min(p, totalPages.value))
+  productsStore.setFilter({ page: newPage })
+  updateQuery({ page: newPage, size: size.value })
 }
 </script>
 
@@ -85,6 +119,7 @@ function goToPage(p: number) {
             <option :value="10">10</option>
             <option :value="20">20</option>
             <option :value="50">50</option>
+            <option :value="100">100</option>
           </select>
         </div>
       </div>
