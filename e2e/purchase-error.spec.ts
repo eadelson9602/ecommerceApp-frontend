@@ -17,8 +17,8 @@ test.describe('Caso de error: stock insuficiente o inventario no disponible', ()
 
     await expect(page).toHaveURL(/\/(products)?$/)
 
-    // Stub producto e inventario para no depender del backend: producto con stock limitado
-    await page.route('**/api/products/**', (route) => {
+    // Stub producto e inventario (API versionada /api/v1/...) para no depender del backend
+    await page.route('**/api/v1/products/**', (route) => {
       if (route.request().method() !== 'GET') return route.continue()
       const url = route.request().url()
       if (url.includes(PRODUCTO_ID)) {
@@ -36,7 +36,7 @@ test.describe('Caso de error: stock insuficiente o inventario no disponible', ()
       }
       return route.continue()
     })
-    await page.route('**/api/inventory/**', (route) => {
+    await page.route('**/api/v1/inventory/**', (route) => {
       if (route.request().method() !== 'GET') return route.continue()
       return route.fulfill({
         status: 200,
@@ -70,7 +70,7 @@ test.describe('Caso de error: stock insuficiente o inventario no disponible', ()
     await page.getByRole('button', { name: /entrar/i }).click()
 
     await expect(page).toHaveURL(/\/(products)?$/)
-    await page.route('**/api/products/**', (route) => route.abort())
+    await page.route('**/api/v1/products/**', (route) => route.abort())
     await page.goto('/products/11111111-1111-1111-1111-111111111111')
     await expect(page.getByRole('button', { name: /reintentar/i })).toBeVisible({ timeout: 15000 })
   })

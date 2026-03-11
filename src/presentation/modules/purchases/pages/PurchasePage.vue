@@ -5,6 +5,7 @@ import { productsListQuery, PRODUCT_QUERY_KEYS } from '@/application/products/pr
 import { inventoryByProductQuery, INVENTORY_QUERY_KEYS } from '@/application/inventory/inventory-queries'
 import PageContainer from '@/presentation/shared/components/PageContainer.vue'
 import Loader from '@/presentation/shared/components/Loader.vue'
+import ErrorAlert from '@/presentation/shared/components/ErrorAlert.vue'
 import PurchaseForm from '../components/PurchaseForm.vue'
 
 const selectedProductId = ref<string>('')
@@ -122,20 +123,11 @@ function retryInventory() {
                 />
               </div>
             </div>
-            <div
+            <ErrorAlert
               v-else-if="inventoryState.error"
-              class="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-              role="alert"
-            >
-              <p>{{ inventoryState.error?.message }}</p>
-              <button
-                type="button"
-                class="mt-2 rounded border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
-                @click="retryInventory"
-              >
-                Reintentar
-              </button>
-            </div>
+              :message="inventoryState.error?.message ?? 'Error al cargar inventario'"
+              @retry="retryInventory"
+            />
             <div v-else class="flex justify-center py-4">
               <Loader label="Cargando inventario…" size="sm" />
             </div>

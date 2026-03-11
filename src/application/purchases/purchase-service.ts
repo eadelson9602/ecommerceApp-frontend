@@ -1,18 +1,9 @@
-/**
- * Servicio de compras: validaciones alineadas con el backend (Inventory POST /api/purchases).
- * - productId requerido
- * - quantity requerido, entero positivo
- * - opcional: quantity <= available (validación en front para mejor UX)
- */
 import { apiPurchase } from "@/infrastructure/api/client";
 
 export type PurchaseValidationResult =
   | { valid: true }
   | { valid: false; message: string };
 
-/**
- * Valida los datos de compra según requisitos del backend (y prueba técnica).
- */
 export function validatePurchaseInput(
   productId: string,
   quantity: number,
@@ -43,9 +34,6 @@ export type ProcessPurchaseResult =
   | { ok: true }
   | { ok: false; message: string; status: number };
 
-/**
- * Procesa una compra: valida y llama al backend (Idempotency-Key para reintentos).
- */
 export async function processPurchase(
   productId: string,
   quantity: number,

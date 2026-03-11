@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
 import type { ProductFilter } from '@/domain/product'
 
-/** Store de UI/estado local del módulo productos (filtros, paginación). */
 export interface ProductsUiState {
   filter: Partial<ProductFilter>
-  /** Total de registros de la última lista cargada (para paginación). */
   listTotalRecords: number | null
 }
 

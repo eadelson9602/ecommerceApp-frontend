@@ -4,12 +4,8 @@ import {
   DEFAULT_REQUEST_TIMEOUT_MS,
 } from './api-errors'
 
-/**
- * Cliente HTTP para el backend ecommerceApp (Products 8080, Inventory 8081).
- * JSON:API y JWT opcional (lee de localStorage clave 'auth').
- * Timeout y mensajes claros para 404, 409, 422 y timeout.
- */
 export const JSON_API_MEDIA_TYPE = 'application/vnd.api+json'
+const API_VERSION = '/api/v1'
 
 const PRODUCTS_BASE =
   import.meta.env.VITE_PRODUCTS_API_URL ?? 'http://localhost:8080'
@@ -29,22 +25,24 @@ function getAuthToken(): string | null {
   }
 }
 
+function withApiVersion(path: string): string {
+  const p = path.startsWith('/') ? path : `/${path}`
+  return p.startsWith(API_VERSION) ? p : p.replace(/^\/api\b/, API_VERSION)
+}
+
 export function getProductsApiUrl(path: string): string {
   const base = PRODUCTS_BASE.replace(/\/$/, '')
-  const p = path.startsWith('/') ? path : `/${path}`
-  return `${base}${p}`
+  return `${base}${withApiVersion(path)}`
 }
 
 export function getInventoryApiUrl(path: string): string {
   const base = INVENTORY_BASE.replace(/\/$/, '')
-  const p = path.startsWith('/') ? path : `/${path}`
-  return `${base}${p}`
+  return `${base}${withApiVersion(path)}`
 }
 
 export interface RequestOptions extends RequestInit {
   jsonApi?: boolean
   base?: 'products' | 'inventory'
-  /** Timeout en ms; por defecto DEFAULT_REQUEST_TIMEOUT_MS. */
   timeoutMs?: number
 }
 
@@ -128,9 +126,6 @@ export async function apiMutate(
   })
 }
 
-/**
- * Para compras: permite enviar Idempotency-Key y obtener mensaje de error amigable si falla.
- */
 export async function apiPurchase(
   productId: string,
   quantity: number,

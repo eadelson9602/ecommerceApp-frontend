@@ -39,8 +39,10 @@ La estructura del proyecto sigue una **arquitectura hexagonal** con presentació
 Copia el ejemplo y ajusta las URLs del backend según el entorno:
 
 ```bash
-cp env.example .env
+cp .env.example .env
 ```
+
+**Importante:** No versiones el archivo `.env` (contiene valores locales). El token JWT se persiste en `localStorage` bajo la clave del store de auth; en entornos sensibles valora usar `sessionStorage` o memoria y no commitear credenciales.
 
 | Variable                 | Descripción                                 | Por defecto (dev)       |
 | ------------------------ | ------------------------------------------- | ----------------------- |
@@ -64,7 +66,7 @@ yarn install
 ### 2. Configurar entorno
 
 ```bash
-cp env.example .env
+cp .env.example .env
 # Editar .env si las URLs del backend no son localhost:8080 y localhost:8081
 ```
 

@@ -11,7 +11,12 @@ withDefaults(
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-3 text-gray-500">
+  <div
+    class="flex flex-col items-center justify-center gap-3 text-gray-500"
+    role="status"
+    aria-live="polite"
+    :aria-label="label || 'Cargando'"
+  >
     <svg
       class="animate-spin text-gray-500"
       :class="{

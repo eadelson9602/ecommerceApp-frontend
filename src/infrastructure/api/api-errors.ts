@@ -1,6 +1,3 @@
-/**
- * Mensajes claros para errores de API (404, 409, 422, timeout) según prueba técnica.
- */
 export interface JsonApiError {
   status?: string
   code?: string
@@ -22,9 +19,6 @@ function parseErrorBody(text: string): JsonApiErrorBody | null {
   }
 }
 
-/**
- * Devuelve un mensaje amigable según status HTTP y cuerpo JSON:API.
- */
 export function getApiErrorMessage(
   status: number,
   responseText: string,
@@ -55,9 +49,6 @@ export function getApiErrorMessage(
   }
 }
 
-/**
- * Mensaje cuando la petición hace timeout.
- */
 export function getTimeoutErrorMessage(timeoutMs: number = DEFAULT_TIMEOUT_MS): string {
   return `Tiempo de espera agotado (${timeoutMs / 1000}s). Comprueba la conexión e intenta de nuevo.`
 }
